@@ -50,7 +50,7 @@ A modular, console-based Java application for student course registration, featu
 
 - `students.txt` contains student records in CSV format:
   ```
-  239,Yadagiri,123456
+  239,Yadagiri,password
   ```
 
 ## License
