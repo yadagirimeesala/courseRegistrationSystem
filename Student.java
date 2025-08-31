@@ -1,3 +1,6 @@
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +34,15 @@ public class Student {
         return Collections.unmodifiableList(registeredCourses);
     }
 
-    public boolean addCourse(Course course, int maxCredits) {
+    public void addCourse(Course course){
+        if(!registeredCourses.contains(course)){
+            registeredCourses.add(course);
+        }
+    }
+
+
+                             
+    public boolean registerCourse(Course course, int maxCredits) {
         int totalCredits = registeredCourses.stream().mapToInt(Course::getCredits).sum();
 
         if (registeredCourses.contains(course)) {
@@ -44,21 +55,50 @@ public class Student {
             return false;
         }
 
-        registeredCourses.add(course);
-        return true;
-    }
+        String sql = "INSERT INTO student_courses(stu_id,course_id) VALUES(?,?)";
 
-    public boolean removeCourse(Course course){
-        if(registeredCourses.contains(course)){
-            registeredCourses.remove(course);
+        try (Connection conn = DataBaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, this.id);
+            pstmt.setString(2, course.getCourseCode());
+            pstmt.executeUpdate();
+
+            this.registeredCourses.add(course);
+            System.out.println(course.getCourseName() + " Course registered successfully.");
             return true;
-        } else {
-            System.out.println("Course not found in registered courses!");
+        } catch (SQLException e) {
+            System.out.println("Error registering course: " + e.getMessage());
             return false;
 
         }
     }
 
+
+
+    public boolean removeCourse(Course course) {
+        if (!registeredCourses.contains(course)) {
+            System.out.println("Not registered for this course!");
+            return false;
+        }
+
+        String sql = "DELETE FROM student_courses WHERE stu_id=? and course_id=?";
+        try (Connection conn = DataBaseManager.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, this.id);
+            pstmt.setString(2, course.getCourseCode());
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                registeredCourses.remove(course);
+                System.out.println(course.getCourseName() + " Course removed successfully.");
+                return true;
+            }
+            return false;
+        } catch (SQLException e) {
+            System.out.println("Error removing course: " + e.getMessage());
+            return false;
+        }
+    }
 
 
 
@@ -81,18 +121,5 @@ public class Student {
         System.out.println("Total Fee: ₹" + totalFee);
         System.out.println("------------------------\n");
     }
-
-    public String toCSV() {
-        return id + "," + name + "," + password;
-    }
-
-    public static Student fromCSV(String line) {
-        String[] parts = line.split(",");
-        if (parts.length == 3) {
-            return new Student(parts[0], parts[1], parts[2]);
-        }
-        return null;
-    }
-
 
 }

@@ -1,3 +1,7 @@
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -5,14 +9,29 @@ public class CourseManager {
     private List<Course> courses = new ArrayList<>();
 
     public CourseManager() {
-        // Hardcoded courses (you can load from file later if you want)
-        courses.add(new Course("CS101", "Data Structures", 3, 3000));
-        courses.add(new Course("MA102", "Calculus", 4, 4000));
-        courses.add(new Course("PH103", "Physics", 3, 3500));
-        courses.add(new Course("EE104", "Basic Electrical", 2, 2500));
-        courses.add(new Course("HS105", "Communication Skills", 2, 2000));
+        loadCoursesFromDB();
     }
 
+    private void loadCoursesFromDB(){
+        String sql="SELECT * FROM courses";
+
+        try(Connection conn=DataBaseManager.getConnection();
+            PreparedStatement pstmt=conn.prepareStatement(sql);
+            ResultSet rs=pstmt.executeQuery();){
+                while(rs.next()){
+                    String code=rs.getString("course_code");
+                    String name=rs.getString("course_name");
+                    int credits=rs.getInt("credits");  
+                    double fee=rs.getDouble("fee");
+                    courses.add(new Course(code, name, credits, fee));
+                }
+                System.out.println("Courses loaded from database successfully.");
+        }catch(SQLException e){
+            System.out.println("Error loading courses from database: "+e.getMessage());
+        }
+
+
+    }
     public void displayCourses() {
         System.out.println("\n--- Available Courses ---");
         for (Course course : courses) {
@@ -27,7 +46,6 @@ public class CourseManager {
                 return course;
             }
         }
-        System.out.println("Course with code " + code + " not found.");
         return null;
     }
 

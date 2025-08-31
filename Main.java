@@ -73,13 +73,7 @@ public class Main {
                                     System.out.print("Enter Course Code to Register: ");
                                     String code = scanner.nextLine();
                                     Course selected = courseManager.getCourseByCode(code);
-                                    if (selected != null) {
-                                        if (student.addCourse(selected, MAX_CREDITS)) {
-                                            studentManager.saveRegistrations();
-                                        }
-                                    } else {
-                                        System.out.println("Invalid course code.");
-                                    }
+                                    student.registerCourse(selected, MAX_CREDITS);
                                     break;
                                 case 3:
                                     System.out.println("\n--- Registered Courses ---");
@@ -94,7 +88,6 @@ public class Main {
                                     if (toRemove != null) {
                                         if (student.removeCourse(toRemove)) {
                                             System.out.println("Course removed successfully.");
-                                            studentManager.saveRegistrations();
                                         }
                                     } else {
                                         System.out.println("Invalid course code.");
@@ -105,7 +98,6 @@ public class Main {
                                     break;
                                 case 6:
                                     loggedIn = false;
-                                    studentManager.saveRegistrations();  // save before logout
                                     System.out.println("Logged out.");
                                     break;
                                 default:
